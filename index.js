@@ -1,10 +1,9 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-// var ng = require('angular');
 
 app.get('/', function(req, res){
-  res.sendfile('index.html');
+  res.sendFile('index.html',{ root : __dirname});
 });
 
 io.on('connection', function(socket){
