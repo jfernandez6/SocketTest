@@ -2,35 +2,96 @@
 <html>
   <head>
     <title>Socket.IO chat</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
-    </style>
+      <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+      <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+      <!-- Optional theme -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+      <!-- Latest compiled and minified JavaScript -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script> 
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+
+  
+  <div class="container" ng-app="chat" ng-controller="chatCtrl">
+  
+  <div class="panel panel-primary">
+  <div class="panel-heading">
+    <h3 class="panel-title">
+        <span ng-bind="n"></span>
+    </h3>
+  </div>
+  <div class="panel-body">
+    <input type="text" ng-model="n" ng-blur="showMe=false" ng-show="showMe" placeholder="Escribe tu nombre" />
+    <ul>
+      <li ng-repeat="x in messages">{{x}}</li>
+    </ul>
+    <form name="myform">
+   
+        <div class="input-group">
+          <span></span>
+          <input class="form-control" type="text" name="m" ng-model="m" ng-disabled="showMe" required="required" />
+          <div class="input-group-btn">
+            <button class="btn btn-primary" ng-click="enviar()" ng-disabled="myform.m.$invalid">Send</button>
+          </div>
+        </div>      
+  
     </form>
+  </div>
+</div> 
+
+
+    
+  </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
-      var socket = io();
-      $('form').submit(function(){
-        socket.emit('chat message', $('#m').val());
-        $('#m').val('');
-        return false;
+      // var socket = io();
+      var app = angular.module('chat', []);
+      
+      app.factory('socket', function ($rootScope) {
+      var socket = io.connect();
+      return {
+        on: function (eventName, callback) {
+          socket.on(eventName, function () {  
+            var args = arguments;
+            $rootScope.$apply(function () {
+              callback.apply(socket, args);
+            });
+          });
+        },
+        emit: function (eventName, data, callback) {
+          socket.emit(eventName, data, function () {
+            var args = arguments;
+            $rootScope.$apply(function () {
+              if (callback) {
+                callback.apply(socket, args);
+              }
+            });
+          })
+        }
+      };
+    });
+
+      app.controller('chatCtrl', function($scope, socket) {
+          $scope.n="";
+          $scope.messages= [];
+          $scope.showMe = true;
+          $scope.enviar = function (){
+            var data = {usr: $scope.n, msg: $scope.m};
+            socket.emit('chat message', data);
+            $scope.messages.push($scope.n+": " +$scope.m);
+            $scope.m="";
+          }
+          socket.on('chat message', function(data){
+            $scope.messages.push(data.usr+": "+data.msg);
+          });
+          
       });
-      socket.on('chat message', function(msg){
-        $('#messages').append($('<li>').text(msg));
-      });
+
     </script>
   </body>
 </html>
