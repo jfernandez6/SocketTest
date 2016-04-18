@@ -12,6 +12,9 @@ io.on('connection', function(socket){
   	console.log(mm);
     socket.broadcast.emit('chat message', data);
   });
+  socket.on('chat status', function(typing){
+  	console.log(typing);
+  });
 });
 
 http.listen(3000, function(){

@@ -17,7 +17,8 @@
 
   
   <div class="container" ng-app="chat" ng-controller="chatCtrl">
-  
+  <span ng-model="statusSpan" ng-show="IsWriting">User is typing</span>
+
   <div class="panel panel-primary">
   <div class="panel-heading">
     <h3 class="panel-title">
@@ -30,16 +31,14 @@
       <li ng-repeat="x in messages">{{x}}</li>
     </ul>
     <form name="myform">
-   
         <div class="input-group">
-          <span></span>
-          <input class="form-control" type="text" name="m" ng-model="m" ng-disabled="showMe" required="required" />
+          <input class="form-control" type="text" name="m" ng-keypress="verifica()" ng-model="m" ng-disabled="showMe" required="required" />
           <div class="input-group-btn">
             <button class="btn btn-primary" ng-click="enviar()" ng-disabled="myform.m.$invalid">Send</button>
           </div>
         </div>      
-  
     </form>
+
   </div>
 </div> 
 
@@ -49,7 +48,7 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-      // var socket = io();
+
       var app = angular.module('chat', []);
       
       app.factory('socket', function ($rootScope) {
@@ -80,6 +79,7 @@
           $scope.n="";
           $scope.messages= [];
           $scope.showMe = true;
+          $scope.IsWriting = false;
           $scope.enviar = function (){
             var data = {usr: $scope.n, msg: $scope.m};
             socket.emit('chat message', data);
@@ -89,7 +89,15 @@
           socket.on('chat message', function(data){
             $scope.messages.push(data.usr+": "+data.msg);
           });
-          
+          $scope.verifica = function(){
+            var a= false;
+            if ($scope.m!==""){
+                a= true;
+            }
+            $scope.IsWriting = a;
+            socket.emit('chat status', a);
+          }
+                
       });
 
     </script>
