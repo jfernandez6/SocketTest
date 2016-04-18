@@ -7,6 +7,7 @@ app.get('/', function(req, res){
 });
 
 io.on('connection', function(socket){
+    console.log("user loggin in");
   socket.on('chat message', function(data){
   	var mm= data.usr+": "+data.msg;
   	console.log(mm);
@@ -14,6 +15,9 @@ io.on('connection', function(socket){
   });
   socket.on('chat status', function(typing){
   	console.log(typing);
+  });
+  socket.on('disconnect', function () {
+    console.log("user disconnect");
   });
 });
 
